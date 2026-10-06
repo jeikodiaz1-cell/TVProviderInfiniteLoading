@@ -1,0 +1,9 @@
+Package: com.breylin.tvproviderloading
+Name: TV Provider Infinite Loading
+Version: 0.1.0
+Architecture: iphoneos-arm64e
+Description: Keeps the TV Provider loading indicator active in Settings.
+Maintainer: Breylin
+Author: Breylin
+Section: Tweaks
+Depends: firmware (>= 16.0)
