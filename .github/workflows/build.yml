@@ -1,0 +1,36 @@
+name: Build TV Provider Infinite Loading
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup RootHide Theos
+        uses: iossxx/theos-action@v1
+        with:
+          theos-dir: theos
+          theos-src: https://github.com/roothide/theos
+          theos-sdks: https://github.com/theos/sdks
+
+      - name: Build tweak
+        shell: bash
+        run: |
+          export THEOS="$GITHUB_WORKSPACE/theos"
+          make clean
+          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide
+
+      - name: Upload DEB
+        uses: actions/upload-artifact@v4
+        with:
+          name: TVProviderInfiniteLoading-roothide
+          path: packages/*.deb
+          if-no-files-found: error
