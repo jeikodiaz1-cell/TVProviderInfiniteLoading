@@ -3,8 +3,7 @@ name: Build TV Provider Infinite Loading
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
@@ -14,21 +13,40 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup RootHide Theos
-        uses: iossxx/theos-action@v1
-        with:
-          theos-dir: theos
-          theos-src: https://github.com/roothide/theos
-          theos-sdks: https://github.com/theos/sdks
-
-      - name: Build tweak
+      - name: Install RootHide Theos
         shell: bash
         run: |
+          set -e
           export THEOS="$GITHUB_WORKSPACE/theos"
-          make clean
-          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide
+          mkdir -p "$THEOS"
+          curl -fsSL https://raw.githubusercontent.com/roothide/theos/master/bin/install-theos -o install-theos.sh
+          bash install-theos.sh
 
-      - name: Upload DEB
+      - name: Install iOS SDK 16.5
+        shell: bash
+        run: |
+          set -e
+          export THEOS="$GITHUB_WORKSPACE/theos"
+          mkdir -p "$THEOS/sdks"
+          curl -L --fail \
+            https://github.com/theos/sdks/releases/latest/download/iPhoneOS16.5.sdk.tar.xz \
+            -o "$RUNNER_TEMP/iPhoneOS16.5.sdk.tar.xz"
+          tar -xJf "$RUNNER_TEMP/iPhoneOS16.5.sdk.tar.xz" -C "$THEOS/sdks"
+
+      - name: Build RootHide package
+        shell: bash
+        run: |
+          set -e
+          export THEOS="$GITHUB_WORKSPACE/theos"
+          make clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide
+
+      - name: Show package
+        shell: bash
+        run: |
+          ls -lah packages/
+          file packages/*
+
+      - name: Upload .deb
         uses: actions/upload-artifact@v4
         with:
           name: TVProviderInfiniteLoading-roothide
